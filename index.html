@@ -3,351 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paris VIA - Fleet Control & Rentabilité</title>
+    <title>Dashboard Performance & Rentabilité - VIA Hermes</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --bg-card-hover: #334155;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --accent-gold: #f59e0b;
-            --accent-blue: #3b82f6;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --accent-yellow: #eab308;
-            --border-color: #334155;
+            --border: #334155;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); padding: 20px; }
-
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 25px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
         }
 
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand-logo { background: var(--accent-gold); color: #000; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; }
-        .nav-toggles { display: flex; gap: 10px; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; }
 
         .btn {
-            background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color);
-            padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
         }
-        .btn:hover { background: var(--bg-card-hover); }
-        .btn-active { background: var(--accent-blue); border-color: var(--accent-blue); }
-        .btn-gold { background: var(--accent-gold); color: #000; border: none; }
-        .btn-gold:hover { background: #d97706; }
 
-        .view-section { display: none; }
-        .view-section.active { display: block; }
+        .btn-orange { background: #f97316; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        /* VUE CHAUFFEURS */
-        .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 20px; margin: 40px 0; }
-        .podium-step {
-            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
-            padding: 20px; text-align: center; width: 220px; transition: transform 0.2s;
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
         }
-        .podium-step:hover { transform: translateY(-5px); }
-        .podium-step.rank-1 { border-color: var(--accent-gold); height: 260px; }
-        .podium-step.rank-2 { height: 220px; }
-        .podium-step.rank-3 { height: 190px; }
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 6px; }
-        .badge-green { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
 
-        /* VUE PATRON & TABLEAU */
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .kpi-card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
-        .kpi-title { color: var(--text-muted); font-size: 0.85rem; }
-        .kpi-value { font-size: 1.8rem; font-weight: bold; margin-top: 5px; }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            width: 600px;
+            max-width: 90%;
+            border: 1px solid var(--border);
+        }
 
-        .dashboard-main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        @media (max-width: 1024px) { .dashboard-main { grid-template-columns: 1fr; } }
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: #0f172a;
+            color: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: monospace;
+            margin-bottom: 15px;
+        }
 
-        .chart-box { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .grid-dashboard {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr;
+            gap: 20px;
+        }
 
-        .table-container { background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
-        th { background: rgba(0,0,0,0.2); color: var(--text-muted); font-size: 0.8rem; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
 
-        .status-pill { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
-        .status-green { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
-        .status-yellow { background: var(--accent-yellow); box-shadow: 0 0 8px var(--accent-yellow); }
-        .status-red { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
 
-        textarea { width: 100%; height: 180px; background: #0f172a; color: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; margin: 10px 0; font-family: monospace; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: var(--bg-card); padding: 25px; border-radius: 10px; width: 550px; max-width: 90%; }
+        th, td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th { color: var(--text-muted); background: #162032; }
+
+        td[contenteditable="true"] {
+            background: rgba(59, 130, 246, 0.08);
+            outline: none;
+            border-radius: 4px;
+        }
+
+        td[contenteditable="true"]:focus {
+            background: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 0 0 1px var(--accent-blue);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .badge-green { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
+        .badge-yellow { background: rgba(234, 179, 8, 0.2); color: var(--accent-yellow); }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+
+        select.editable-select {
+            background: #0f172a;
+            color: white;
+            border: 1px solid var(--border);
+            padding: 4px 6px;
+            border-radius: 6px;
+            width: 100%;
+        }
+
+        .rules-bar {
+            background: #162032;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+        }
+
+        .rules-bar input {
+            width: 60px;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 4px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="brand">
-            <div class="brand-logo">PV</div>
-            <div>
-                <h2>PARIS VIA — Fleet Control</h2>
-                <span style="color: var(--text-muted); font-size: 0.85rem;">Performance Chauffeurs & Pilotage Financier</span>
-            </div>
+    <div class="header">
+        <h1>📊 Dashboard Performance & Rentabilité (VIA Hermes)</h1>
+        <div>
+            <button class="btn btn-orange" onclick="openModal()">📥 Importer les missions VIA</button>
         </div>
-        <div class="nav-toggles">
-            <button class="btn btn-active" onclick="switchView('drivers')">🏆 Podium Chauffeurs</button>
-            <button class="btn" onclick="switchView('patron')">📈 Direction & Rentabilité</button>
-        </div>
-    </header>
+    </div>
 
-    <!-- VUE CHAUFFEURS -->
-    <section id="drivers-view" class="view-section active">
-        <h3 style="text-align: center; margin-bottom: 20px;">🏆 Classement Trimestriel de la Flotte</h3>
-        <div class="podium-container">
-            <div class="podium-step rank-2">
-                <div style="font-size: 2rem;">🥈</div>
-                <h4>Youssef M.</h4>
-                <p style="color: var(--accent-gold); font-weight: bold; margin: 5px 0;">180 Pts</p>
-                <span class="badge badge-green">Ponctuel</span>
-            </div>
-            <div class="podium-step rank-1">
-                <div style="font-size: 2.5rem;">👑</div>
-                <h4>Karim Benali</h4>
-                <p style="color: var(--accent-gold); font-weight: bold; margin: 5px 0;">200 Pts</p>
-                <span class="badge badge-green">Zero Sinistre</span><br>
-                <span class="badge badge-green" style="margin-top: 4px;">Top Clean</span>
-                <p style="font-size: 0.8rem; margin-top: 15px; color: var(--accent-gold);">Prime: +150 €</p>
-            </div>
-            <div class="podium-step rank-3">
-                <div style="font-size: 2rem;">🥉</div>
-                <h4>Alexandre L.</h4>
-                <p style="color: var(--accent-gold); font-weight: bold; margin: 5px 0;">160 Pts</p>
-                <span class="badge badge-green">Propreté 100%</span>
-            </div>
-        </div>
-    </section>
+    <!-- Barre de Réglage Rapide des Règles de Calcul -->
+    <div class="rules-bar">
+        <strong>⚙️ Régles de calcul automatique :</strong>
+        <label>Chauffeur (% du Prix) : <input type="number" id="driverRate" value="25" onchange="recalculateAll()"> %</label>
+        <label>Berline / Van (% du Prix) : <input type="number" id="vanRate" value="15" onchange="recalculateAll()"> %</label>
+        <label>Autocar (% du Prix) : <input type="number" id="busRate" value="35" onchange="recalculateAll()"> %</label>
+    </div>
 
-    <!-- VUE PATRON / RENTABILITE -->
-    <section id="patron-view" class="view-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3>📊 Analyse Financière des Missions</h3>
-            <button class="btn btn-gold" onclick="openImportModal()">📥 Importer les missions VIA</button>
+    <div class="grid-dashboard">
+        <div class="card">
+            <h3>Tableau Interactif des Missions (Toutes les cases en bleu sont éditables)</h3>
+            <table id="missionsTable">
+                <thead>
+                    <tr>
+                        <th>Réf</th>
+                        <th>Pax</th>
+                        <th>Chauffeur</th>
+                        <th>Véhicule</th>
+                        <th>Prix (€)</th>
+                        <th>Coût Chaf. (€)</th>
+                        <th>Coût Véh. (€)</th>
+                        <th>Marge (€)</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="9" style="text-align:center; color: var(--text-muted);">Aucune mission chargée. Cliquez sur "Importer les missions VIA".</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-title">Chiffre d'Affaires Total</div>
-                <div class="kpi-value" id="kpi-ca">0 €</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Marge Nette globale</div>
-                <div class="kpi-value" id="kpi-marge" style="color: var(--accent-green);">0 €</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Rentables (🟢)</div>
-                <div class="kpi-value" id="kpi-green" style="color: var(--accent-green);">0</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Moyennes (🟡)</div>
-                <div class="kpi-value" id="kpi-yellow" style="color: var(--accent-yellow);">0</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">À Risque (🔴)</div>
-                <div class="kpi-value" id="kpi-red" style="color: var(--accent-red);">0</div>
-            </div>
+        <div class="card">
+            <h3>Répartition de la Rentabilité</h3>
+            <canvas id="marginChart"></canvas>
         </div>
+    </div>
 
-        <div class="dashboard-main">
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Statut</th>
-                            <th>Réf / Mission</th>
-                            <th>Véhicule</th>
-                            <th>Prix HT</th>
-                            <th>Coût Est.</th>
-                            <th>Marge Nette</th>
-                            <th>Rentabilité (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="missions-table-body">
-                    </tbody>
-                </table>
-            </div>
-            <div class="chart-box">
-                <h4 style="margin-bottom: 15px; color: var(--text-muted);">Répartition des Marges</h4>
-                <div style="width: 220px; height: 220px;">
-                    <canvas id="marginChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- MODAL IMPORTATION VIA -->
-    <div id="import-modal" class="modal">
+    <!-- Modal d'Importation -->
+    <div class="modal" id="importModal">
         <div class="modal-content">
-            <h3>📥 Importer un export texte VIA</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">
-                Collez directement le texte copié depuis votre tableau VIA.
-            </p>
-            <textarea id="via-raw-input" placeholder="Collez votre tableau VIA ici..."></textarea>
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button class="btn" onclick="closeImportModal()">Annuler</button>
-                <button class="btn btn-gold" onclick="processViaImport()">Convertir & Injecter</button>
+            <h2>Coller le rapport texte VIA Hermes</h2>
+            <textarea id="viaText" placeholder="Collez ici le texte copié depuis VIA Hermes..."></textarea>
+            <div style="display:flex; justify-content:space-between;">
+                <button class="btn" style="background:#64748b;" onclick="closeModal()">Annuler</button>
+                <button class="btn btn-orange" onclick="processImport()">Convertir & Injecter</button>
             </div>
         </div>
     </div>
 
     <script>
+        let missionsData = [];
         let chartInstance = null;
-        let missionsData = [
-            { id: 'FP11105', title: 'Semaine N° 46 - ALLER (BASTILLE)', pax: 56, price: 560, distKm: 45, hours: 3 },
-            { id: 'FP11106', title: 'RETOUR (PORTE DE MONTREUIL)', pax: 27, price: 270, distKm: 30, hours: 2 },
-            { id: 'FP10464', title: 'DEMANDE DE CONFIRMATION', pax: 34, price: 340, distKm: 50, hours: 3.5 }
-        ];
 
-        function switchView(view) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-toggles .btn').forEach(el => el.classList.remove('btn-active'));
-            
-            if (view === 'drivers') {
-                document.getElementById('drivers-view').classList.add('active');
-                event.target.classList.add('btn-active');
-            } else {
-                document.getElementById('patron-view').classList.add('active');
-                event.target.classList.add('btn-active');
-                renderPatronTable();
+        const listDrivers = ["Non Attribué", "Chauffeur 1", "Chauffeur 2", "Chauffeur 3", "Sous-Traitant"];
+        const listVehicles = ["Berline / Van", "Autocar / Minibus", "Berline VIP"];
+
+        function openModal() { document.getElementById('importModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('importModal').style.display = 'none'; }
+
+        function processImport() {
+            const rawText = document.getElementById('viaText').value;
+            if (!rawText.trim()) return closeModal();
+
+            const lines = rawText.split('\n');
+            missionsData = [];
+
+            lines.forEach((line) => {
+                const refMatch = line.match(/#(?:FP)?(\d+)/i);
+                if (refMatch) {
+                    const paxMatch = line.match(/(\d+)\s*(?:pax|passagers|pers)/i);
+                    const pax = paxMatch ? parseInt(paxMatch[1]) : 1;
+
+                    const priceMatch = line.match(/(\d+[\.,]?\d*)\s*€/);
+                    const price = priceMatch ? parseFloat(priceMatch[1].replace(',', '.')) : 150.00;
+
+                    let driver = "Non Attribué";
+                    listDrivers.forEach(d => {
+                        if (d !== "Non Attribué" && line.toLowerCase().includes(d.toLowerCase())) driver = d;
+                    });
+
+                    let vehicle = pax > 8 ? "Autocar / Minibus" : "Berline / Van";
+
+                    const driverPct = parseFloat(document.getElementById('driverRate').value) / 100;
+                    const vehPct = (vehicle.includes('Autocar') ? parseFloat(document.getElementById('busRate').value) : parseFloat(document.getElementById('vanRate').value)) / 100;
+
+                    missionsData.push({
+                        id: refMatch[0],
+                        pax: pax,
+                        driver: driver,
+                        vehicle: vehicle,
+                        price: price,
+                        driverCost: price * driverPct,
+                        vehCost: price * vehPct
+                    });
+                }
+            });
+
+            closeModal();
+            renderTable();
+            renderChart();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (missionsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color: var(--text-muted);">Aucune donnée reconnue. Assurez-vous que vos lignes contiennent #11077...</td></tr>';
+                return;
+            }
+
+            missionsData.forEach((item, index) => {
+                const totalCost = item.driverCost + item.vehCost;
+                const margin = item.price - totalCost;
+                const ratio = item.price > 0 ? (margin / item.price) * 100 : 0;
+                
+                let badgeClass = "badge-red";
+                let statusText = "Faible";
+                if (ratio >= 40) { badgeClass = "badge-green"; statusText = "Excellente"; }
+                else if (ratio >= 20) { badgeClass = "badge-yellow"; statusText = "Moyenne"; }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${item.id}</strong></td>
+                    <td contenteditable="true" onblur="updateNum(${index}, 'pax', this.innerText)">${item.pax}</td>
+                    <td>${createDropdown(listDrivers, item.driver, index, 'driver')}</td>
+                    <td>${createDropdown(listVehicles, item.vehicle, index, 'vehicle')}</td>
+                    <td contenteditable="true" onblur="updateNum(${index}, 'price', this.innerText)">${item.price.toFixed(2)}</td>
+                    <td contenteditable="true" onblur="updateNum(${index}, 'driverCost', this.innerText)">${item.driverCost.toFixed(2)}</td>
+                    <td contenteditable="true" onblur="updateNum(${index}, 'vehCost', this.innerText)">${item.vehCost.toFixed(2)}</td>
+                    <td style="font-weight:bold; color:${margin >= 0 ? '#22c55e' : '#ef4444'}">${margin.toFixed(2)} €</td>
+                    <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function createDropdown(options, selectedValue, index, field) {
+            let html = `<select class="editable-select" onchange="updateDropdown(${index}, '${field}', this.value)">`;
+            options.forEach(opt => {
+                html += `<option value="${opt}" ${opt === selectedValue ? 'selected' : ''}>${opt}</option>`;
+            });
+            html += `</select>`;
+            return html;
+        }
+
+        function updateNum(index, field, value) {
+            const num = parseFloat(value.replace(',', '.'));
+            if (!isNaN(num)) {
+                missionsData[index][field] = num;
+                if (field === 'price' || field === 'pax') {
+                    recalculateItem(index);
+                } else {
+                    renderTable();
+                    renderChart();
+                }
             }
         }
 
-        function calculateMission(m) {
-            let kmRate = 0.85; 
-            let vType = 'Berline VIP';
-            
-            if (m.pax > 35) { kmRate = 2.20; vType = 'Autocar / Car'; }
-            else if (m.pax >= 9) { kmRate = 1.80; vType = 'Sprinter VIP'; }
-
-            const costDriver = (m.hours || 2.5) * 25;
-            const costKm = (m.distKm || 40) * kmRate;
-            const totalCost = costDriver + costKm;
-            const margin = m.price - totalCost;
-            const marginPct = m.price > 0 ? (margin / m.price) * 100 : 0;
-
-            let status = 'green';
-            if (marginPct < 15) status = 'red';
-            else if (marginPct <= 35) status = 'yellow';
-
-            return { ...m, vType, totalCost, margin, marginPct, status };
+        function updateDropdown(index, field, value) {
+            missionsData[index][field] = value;
+            recalculateItem(index);
         }
 
-        function renderPatronTable() {
-            const tbody = document.getElementById('missions-table-body');
-            tbody.innerHTML = '';
+        function recalculateItem(index) {
+            const item = missionsData[index];
+            const driverPct = parseFloat(document.getElementById('driverRate').value) / 100;
+            const vehPct = (item.vehicle.includes('Autocar') ? parseFloat(document.getElementById('busRate').value) : parseFloat(document.getElementById('vanRate').value)) / 100;
 
-            let caTotal = 0, margeTotale = 0, countGreen = 0, countYellow = 0, countRed = 0;
+            item.driverCost = item.price * driverPct;
+            item.vehCost = item.price * vehPct;
 
-            missionsData.forEach(raw => {
-                const m = calculateMission(raw);
-                caTotal += m.price;
-                margeTotale += m.margin;
-                if (m.status === 'green') countGreen++;
-                else if (m.status === 'yellow') countYellow++;
-                else if (m.status === 'red') countRed++;
+            renderTable();
+            renderChart();
+        }
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td><span class="status-pill status-${m.status}"></span></td>
-                        <td><strong>${m.id}</strong><br><small style="color:var(--text-muted)">${m.title}</small></td>
-                        <td>${m.vType} (${m.pax} Pax)</td>
-                        <td>${m.price.toFixed(2)} €</td>
-                        <td>${m.totalCost.toFixed(2)} €</td>
-                        <td style="color:${m.margin >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${m.margin.toFixed(2)} €</td>
-                        <td><strong>${m.marginPct.toFixed(1)} %</strong></td>
-                    </tr>
-                `;
+        function recalculateAll() {
+            missionsData.forEach((_, i) => recalculateItem(i));
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('marginChart').getContext('2d');
+            
+            let green = 0, yellow = 0, red = 0;
+            missionsData.forEach(item => {
+                const margin = item.price - (item.driverCost + item.vehCost);
+                const ratio = item.price > 0 ? (margin / item.price) * 100 : 0;
+                if (ratio >= 40) green++;
+                else if (ratio >= 20) yellow++;
+                else red++;
             });
 
-            document.getElementById('kpi-ca').innerText = caTotal.toLocaleString() + ' €';
-            document.getElementById('kpi-marge').innerText = margeTotale.toLocaleString() + ' €';
-            document.getElementById('kpi-green').innerText = countGreen;
-            document.getElementById('kpi-yellow').innerText = countYellow;
-            document.getElementById('kpi-red').innerText = countRed;
-
-            renderChart(countGreen, countYellow, countRed);
-        }
-
-        function renderChart(g, y, r) {
-            const ctx = document.getElementById('marginChart').getContext('2d');
             if (chartInstance) chartInstance.destroy();
 
             chartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Rentable (🟢)', 'Moyen (🟡)', 'À Risque (🔴)'],
+                    labels: ['Excellente (≥40%)', 'Moyenne (20-39%)', 'Faible (<20%)'],
                     datasets: [{
-                        data: [g, y, r],
-                        backgroundColor: ['#10b981', '#eab308', '#ef4444'],
-                        borderWidth: 0
+                        data: [green, yellow, red],
+                        backgroundColor: ['#22c55e', '#eab308', '#ef4444']
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#f8fafc' } }
+                    }
                 }
             });
-        }
-
-        function openImportModal() { document.getElementById('import-modal').style.display = 'flex'; }
-        function closeImportModal() { document.getElementById('import-modal').style.display = 'none'; }
-
-        function processViaImport() {
-            const rawText = document.getElementById('via-raw-input').value;
-            const lines = rawText.split('\n');
-            const imported = [];
-
-            lines.forEach(line => {
-                const cleaned = line.trim();
-                // Ignorer les signatures/bas de page
-                if (!cleaned || cleaned.includes('Copyright') || cleaned.includes('Créé avec') || cleaned.includes('autres')) return;
-
-                // Extraction Référence (#11077 ou FP11105)
-                const refMatch = cleaned.match(/(#\d+|FP\d+)/i);
-                if (refMatch) {
-                    const id = refMatch[1];
-
-                    // Extraction du nombre de Pax
-                    const paxMatch = cleaned.match(/(\d+)\s*pax/i) || cleaned.match(/0(\d{2})0/);
-                    let pax = paxMatch ? parseInt(paxMatch[1]) : 35;
-
-                    // Extrait du titre / client
-                    let title = cleaned.replace(id, '').replace(/Copyright.*/, '').trim();
-                    if (title.length > 40) title = title.substring(0, 40) + '...';
-
-                    // Estimation automatique du prix selon pax si non mentionné
-                    let price = 350;
-                    if (pax > 35) price = 590;
-                    else if (pax >= 9) price = 380;
-
-                    imported.push({
-                        id: id,
-                        title: title || 'Mission VIA',
-                        pax: pax,
-                        price: price,
-                        distKm: 45,
-                        hours: 3
-                    });
-                }
-            });
-
-            if (imported.length > 0) {
-                missionsData = imported;
-                renderPatronTable();
-                closeImportModal();
-                alert(`${imported.length} missions importées et analysées !`);
-            } else {
-                alert("Impossible de lire les données. Assurez-vous d'avoir bien copié le tableau des dossiers VIA.");
-            }
         }
     </script>
 </body>
