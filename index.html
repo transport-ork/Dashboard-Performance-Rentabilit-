@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paris VIA - Dashboard Performance & Rentabilité</title>
+    <title>Paris VIA - Fleet Control & Rentabilité</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -58,22 +58,27 @@
         .badge-green { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
 
         /* VUE PATRON & TABLEAU */
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .kpi-card { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
         .kpi-title { color: var(--text-muted); font-size: 0.85rem; }
         .kpi-value { font-size: 1.8rem; font-weight: bold; margin-top: 5px; }
 
-        .table-container { background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; margin-top: 20px; }
+        .dashboard-main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        @media (max-width: 1024px) { .dashboard-main { grid-template-columns: 1fr; } }
+
+        .chart-box { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        .table-container { background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 14px; border-bottom: 1px solid var(--border-color); }
-        th { background: rgba(0,0,0,0.2); color: var(--text-muted); font-size: 0.85rem; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+        th { background: rgba(0,0,0,0.2); color: var(--text-muted); font-size: 0.8rem; }
 
         .status-pill { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
         .status-green { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
         .status-yellow { background: var(--accent-yellow); box-shadow: 0 0 8px var(--accent-yellow); }
         .status-red { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
 
-        textarea { width: 100%; height: 160px; background: #0f172a; color: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; margin: 10px 0; }
+        textarea { width: 100%; height: 180px; background: #0f172a; color: #fff; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; margin: 10px 0; font-family: monospace; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
         .modal-content { background: var(--bg-card); padding: 25px; border-radius: 10px; width: 550px; max-width: 90%; }
     </style>
@@ -85,7 +90,7 @@
             <div class="brand-logo">PV</div>
             <div>
                 <h2>PARIS VIA — Fleet Control</h2>
-                <span style="color: var(--text-muted); font-size: 0.85rem;">Performance Chauffeurs & Rentabilité Missions</span>
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Performance Chauffeurs & Pilotage Financier</span>
             </div>
         </div>
         <div class="nav-toggles">
@@ -138,32 +143,43 @@
                 <div class="kpi-value" id="kpi-marge" style="color: var(--accent-green);">0 €</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-title">Missions Rentables (🟢)</div>
+                <div class="kpi-title">Rentables (🟢)</div>
                 <div class="kpi-value" id="kpi-green" style="color: var(--accent-green);">0</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-title">Missions À Risque (🔴)</div>
+                <div class="kpi-title">Moyennes (🟡)</div>
+                <div class="kpi-value" id="kpi-yellow" style="color: var(--accent-yellow);">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">À Risque (🔴)</div>
                 <div class="kpi-value" id="kpi-red" style="color: var(--accent-red);">0</div>
             </div>
         </div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Statut</th>
-                        <th>Réf / Mission</th>
-                        <th>Véhicule</th>
-                        <th>Prix Vendu HT</th>
-                        <th>Coût Estimé</th>
-                        <th>Marge Nette</th>
-                        <th>Rentabilité (%)</th>
-                    </tr>
-                </thead>
-                <tbody id="missions-table-body">
-                    <!-- Les données s'affichent ici -->
-                </tbody>
-            </table>
+        <div class="dashboard-main">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Statut</th>
+                            <th>Réf / Mission</th>
+                            <th>Véhicule</th>
+                            <th>Prix HT</th>
+                            <th>Coût Est.</th>
+                            <th>Marge Nette</th>
+                            <th>Rentabilité (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="missions-table-body">
+                    </tbody>
+                </table>
+            </div>
+            <div class="chart-box">
+                <h4 style="margin-bottom: 15px; color: var(--text-muted);">Répartition des Marges</h4>
+                <div style="width: 220px; height: 220px;">
+                    <canvas id="marginChart"></canvas>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -172,7 +188,7 @@
         <div class="modal-content">
             <h3>📥 Importer un export texte VIA</h3>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">
-                Collez directement le texte copié depuis votre tableau VIA (Hermes/Dossiers détaillés).
+                Collez directement le texte copié depuis votre tableau VIA.
             </p>
             <textarea id="via-raw-input" placeholder="Collez votre tableau VIA ici..."></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
@@ -183,9 +199,11 @@
     </div>
 
     <script>
+        let chartInstance = null;
         let missionsData = [
-            { id: 'FP11105', title: 'ALLER (BASTILLE)', pax: 56, price: 590, distKm: 45, hours: 3 },
-            { id: 'FP11106', title: 'RETOUR (PORTE DE MONTREUIL)', pax: 27, price: 270, distKm: 30, hours: 2 }
+            { id: 'FP11105', title: 'Semaine N° 46 - ALLER (BASTILLE)', pax: 56, price: 560, distKm: 45, hours: 3 },
+            { id: 'FP11106', title: 'RETOUR (PORTE DE MONTREUIL)', pax: 27, price: 270, distKm: 30, hours: 2 },
+            { id: 'FP10464', title: 'DEMANDE DE CONFIRMATION', pax: 34, price: 340, distKm: 50, hours: 3.5 }
         ];
 
         function switchView(view) {
@@ -203,7 +221,7 @@
         }
 
         function calculateMission(m) {
-            let kmRate = 0.85; // Berline
+            let kmRate = 0.85; 
             let vType = 'Berline VIP';
             
             if (m.pax > 35) { kmRate = 2.20; vType = 'Autocar / Car'; }
@@ -213,7 +231,7 @@
             const costKm = (m.distKm || 40) * kmRate;
             const totalCost = costDriver + costKm;
             const margin = m.price - totalCost;
-            const marginPct = (margin / m.price) * 100;
+            const marginPct = m.price > 0 ? (margin / m.price) * 100 : 0;
 
             let status = 'green';
             if (marginPct < 15) status = 'red';
@@ -226,14 +244,15 @@
             const tbody = document.getElementById('missions-table-body');
             tbody.innerHTML = '';
 
-            let caTotal = 0, margeTotale = 0, countGreen = 0, countRed = 0;
+            let caTotal = 0, margeTotale = 0, countGreen = 0, countYellow = 0, countRed = 0;
 
             missionsData.forEach(raw => {
                 const m = calculateMission(raw);
                 caTotal += m.price;
                 margeTotale += m.margin;
                 if (m.status === 'green') countGreen++;
-                if (m.status === 'red') countRed++;
+                else if (m.status === 'yellow') countYellow++;
+                else if (m.status === 'red') countRed++;
 
                 tbody.innerHTML += `
                     <tr>
@@ -251,7 +270,32 @@
             document.getElementById('kpi-ca').innerText = caTotal.toLocaleString() + ' €';
             document.getElementById('kpi-marge').innerText = margeTotale.toLocaleString() + ' €';
             document.getElementById('kpi-green').innerText = countGreen;
+            document.getElementById('kpi-yellow').innerText = countYellow;
             document.getElementById('kpi-red').innerText = countRed;
+
+            renderChart(countGreen, countYellow, countRed);
+        }
+
+        function renderChart(g, y, r) {
+            const ctx = document.getElementById('marginChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Rentable (🟢)', 'Moyen (🟡)', 'À Risque (🔴)'],
+                    datasets: [{
+                        data: [g, y, r],
+                        backgroundColor: ['#10b981', '#eab308', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
         }
 
         function openImportModal() { document.getElementById('import-modal').style.display = 'flex'; }
@@ -263,19 +307,31 @@
             const imported = [];
 
             lines.forEach(line => {
-                const fpMatch = line.match(/(FP\d+)/);
-                if (fpMatch) {
-                    const id = fpMatch[1];
-                    const paxMatch = line.match(/(\d+)\s*pax/i) || line.match(/0(\d{2})0/);
-                    const pax = paxMatch ? parseInt(paxMatch[1]) : 49;
-                    
-                    // Détection prix indicative dans la chaîne
-                    const priceMatch = line.match(/(590|270|540|420|550|330|340|090)/);
-                    const price = priceMatch ? parseInt(priceMatch[1]) : 450;
+                const cleaned = line.trim();
+                // Ignorer les signatures/bas de page
+                if (!cleaned || cleaned.includes('Copyright') || cleaned.includes('Créé avec') || cleaned.includes('autres')) return;
+
+                // Extraction Référence (#11077 ou FP11105)
+                const refMatch = cleaned.match(/(#\d+|FP\d+)/i);
+                if (refMatch) {
+                    const id = refMatch[1];
+
+                    // Extraction du nombre de Pax
+                    const paxMatch = cleaned.match(/(\d+)\s*pax/i) || cleaned.match(/0(\d{2})0/);
+                    let pax = paxMatch ? parseInt(paxMatch[1]) : 35;
+
+                    // Extrait du titre / client
+                    let title = cleaned.replace(id, '').replace(/Copyright.*/, '').trim();
+                    if (title.length > 40) title = title.substring(0, 40) + '...';
+
+                    // Estimation automatique du prix selon pax si non mentionné
+                    let price = 350;
+                    if (pax > 35) price = 590;
+                    else if (pax >= 9) price = 380;
 
                     imported.push({
                         id: id,
-                        title: line.substring(0, 40) + '...',
+                        title: title || 'Mission VIA',
                         pax: pax,
                         price: price,
                         distKm: 45,
@@ -288,9 +344,9 @@
                 missionsData = imported;
                 renderPatronTable();
                 closeImportModal();
-                alert(`${imported.length} missions importées et calculées avec succès !`);
+                alert(`${imported.length} missions importées et analysées !`);
             } else {
-                alert("Aucune référence de type 'FPxxxxx' trouvée dans le texte copié.");
+                alert("Impossible de lire les données. Assurez-vous d'avoir bien copié le tableau des dossiers VIA.");
             }
         }
     </script>
